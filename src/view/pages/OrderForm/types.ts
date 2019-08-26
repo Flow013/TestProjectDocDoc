@@ -11,5 +11,6 @@ export interface IProps {
 export interface IState {
   model: OrderFormDto
   deliveryType: deliveryType
-  selectedTab: selectedTab
+  selectedTab: selectedTab,
+  mainTabValid: boolean
 }

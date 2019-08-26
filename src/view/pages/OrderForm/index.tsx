@@ -8,10 +8,24 @@ import { IProps, IState, selectedTab, deliveryType } from "./types"
 const { TabPane } = Tabs
 
 const styles = {
-  nextToAddressButton: {
+  button: {
     margin: "5px"
   }
 }
+
+const mainTabFields = [
+  nameof<OrderFormDto>(x => x.firstName),
+  nameof<OrderFormDto>(x => x.lastName),
+  nameof<OrderFormDto>(x => x.phoneNumber),
+  nameof<OrderFormDto>(x => x.email)
+]
+const addressTabFields = [
+  nameof<OrderFormDto>(x => x.country),
+  nameof<OrderFormDto>(x => x.city),
+  nameof<OrderFormDto>(x => x.postcode),
+  nameof<OrderFormDto>(x => x.address),
+  nameof<OrderFormDto>(x => x.deliveryDate)
+]
 
 class OrderForm extends React.Component<IProps, IState> {
   constructor(props: IProps) {
@@ -19,14 +33,19 @@ class OrderForm extends React.Component<IProps, IState> {
     this.state = {
       model: {} as OrderFormDto,
       deliveryType: "delivery",
-      selectedTab: "main"
+      selectedTab: "main",
+      mainTabValid: false,
     }
   }
   onTabChanged = (selectedTab: selectedTab) => {
+    const {
+      mainTabValid
+    } = this.state
     if (selectedTab === "main") {
       this.setState(prevState => ({
         selectedTab,
         deliveryType: "delivery",
+        mainTabValid: false,
         model: {
           ...prevState.model,
           country: undefined,
@@ -38,9 +57,11 @@ class OrderForm extends React.Component<IProps, IState> {
         }
       }))
     } else {
-      this.setState(prevState => ({
-        selectedTab
-      }))
+      if (mainTabValid) {
+        this.setState(prevState => ({
+          selectedTab
+        }))
+      }
     }
   }
 
@@ -58,6 +79,22 @@ class OrderForm extends React.Component<IProps, IState> {
     }))
   }
 
+  mainFormIsValid = () => {
+    this.setState({mainTabValid: true})
+    this.onTabChanged('address')
+  }
+
+  handleSubmit = (fields: string[], action?: () => void) => e => {
+    e.preventDefault()
+    this.props.form.validateFields(fields,
+      (err, values) => {
+        if (!err) {
+          this.setState(prevState => ({ model: { ...prevState.model, values } }))
+          action && action()
+        }
+      })
+  }
+
   render() {
     const { form } = this.props
     const { model, deliveryType, selectedTab } = this.state
@@ -65,69 +102,65 @@ class OrderForm extends React.Component<IProps, IState> {
       <>
         <Tabs activeKey={selectedTab} onChange={this.onTabChanged}>
           <TabPane key="main" tab="Основные данные">
-            <Form form={form}>
+            <Form onSubmit={this.handleSubmit(mainTabFields, this.mainFormIsValid)}>
               <FormModel
                 model={model}
                 modelOptions={OrderFormDtoOptions}
                 form={form}
-                showFields={[
-                  nameof<OrderFormDto>(x => x.firstName),
-                  nameof<OrderFormDto>(x => x.lastName),
-                  nameof<OrderFormDto>(x => x.phoneNumber),
-                  nameof<OrderFormDto>(x => x.email)
-                ]}
+                showFields={mainTabFields}
               />
+              <Button
+                type="primary"
+                style={styles.button}
+                htmlType="submit"
+              >
+                Продолжить
+              </Button>
             </Form>
-            <Button
-              type="primary"
-              style={styles.nextToAddressButton}
-              onClick={() => this.onTabChanged("address")}
-            >
-              Продолжить
-            </Button>
           </TabPane>
+
+          
           <TabPane key="address" tab="Адрес доставки">
-            <Radio.Group
-              onChange={e => this.onDeliveryTypeChanged(e.target.value)}
-            >
-              <Radio value="delivery" checked={deliveryType === "delivery"}>
-                Доставка
+            {/* Костыль для очищения полей */}
+            {selectedTab === 'address' && (
+              <div>
+                <Radio.Group
+                  onChange={e => this.onDeliveryTypeChanged(e.target.value)}
+                >
+                  <Radio value="delivery" checked={deliveryType === "delivery"}>
+                    Доставка
               </Radio>
-              <Radio value="pickup" checked={deliveryType === "pickup"}>
-                Самовывоз
+                  <Radio value="pickup" checked={deliveryType === "pickup"}>
+                    Самовывоз
               </Radio>
-            </Radio.Group>
+                </Radio.Group>
 
-            <Form form={form}>
-              {deliveryType === "delivery" && (
-                <FormModel
-                  model={model}
-                  modelOptions={OrderFormDtoOptions}
-                  form={form}
-                  showFields={[
-                    nameof<OrderFormDto>(x => x.country),
-                    nameof<OrderFormDto>(x => x.city),
-                    nameof<OrderFormDto>(x => x.postcode),
-                    nameof<OrderFormDto>(x => x.address),
-                    nameof<OrderFormDto>(x => x.deliveryDate)
-                  ]}
-                />
-              )}
+                <Form onSubmit={this.handleSubmit(addressTabFields)}>
+                  {deliveryType === "delivery" && (
+                    <FormModel
+                      model={model}
+                      modelOptions={OrderFormDtoOptions}
+                      form={form}
+                      showFields={addressTabFields}
+                    />
+                  )}
 
-              <FormModel
-                model={model}
-                modelOptions={OrderFormDtoOptions}
-                form={form}
-                showFields={[nameof<OrderFormDto>(x => x.comment)]}
-              />
-            </Form>
-            <Button
-              type="primary"
-              style={styles.nextToAddressButton}
-              onClick={() => this.onTabChanged("address")}
-            >
-              Отправить
-            </Button>
+                  <FormModel
+                    model={model}
+                    modelOptions={OrderFormDtoOptions}
+                    form={form}
+                    showFields={[nameof<OrderFormDto>(x => x.comment)]}
+                  />
+                  <Button
+                    type="primary"
+                    style={styles.button}
+                    htmlType="submit"
+                  >
+                    Отправить
+              </Button>
+                </Form>
+              </div>
+            )}
           </TabPane>
         </Tabs>
       </>
