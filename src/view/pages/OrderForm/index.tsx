@@ -37,6 +37,7 @@ class OrderForm extends React.Component<IProps, IState> {
       mainTabValid: false,
     }
   }
+
   onTabChanged = (selectedTab: selectedTab) => {
     const {
       mainTabValid
@@ -95,6 +96,12 @@ class OrderForm extends React.Component<IProps, IState> {
       })
   }
 
+  sendOrderForm = () => {
+    const {
+      model
+    } = this.state
+  }
+
   render() {
     const { form } = this.props
     const { model, deliveryType, selectedTab } = this.state
@@ -119,7 +126,7 @@ class OrderForm extends React.Component<IProps, IState> {
             </Form>
           </TabPane>
 
-          
+
           <TabPane key="address" tab="Адрес доставки">
             {/* Костыль для очищения полей */}
             {selectedTab === 'address' && (
@@ -135,7 +142,7 @@ class OrderForm extends React.Component<IProps, IState> {
               </Radio>
                 </Radio.Group>
 
-                <Form onSubmit={this.handleSubmit(addressTabFields)}>
+                <Form onSubmit={this.handleSubmit(addressTabFields, this.sendOrderForm)}>
                   {deliveryType === "delivery" && (
                     <FormModel
                       model={model}
