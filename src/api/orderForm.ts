@@ -5,7 +5,7 @@ import { OrderFormDto } from '../models/OrderFormDto'
 
 const orderFormApi = {
   sendOrderForm: (dto: OrderFormDto): any => 
-    Axios.post<any>('/test.php', dto),
+    Axios.post('/test.php', dto),
 }
 
 export default orderFormApi

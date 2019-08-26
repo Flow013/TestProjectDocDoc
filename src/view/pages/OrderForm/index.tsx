@@ -39,9 +39,6 @@ class OrderForm extends React.Component<IProps, IState> {
   }
 
   onTabChanged = (selectedTab: selectedTab) => {
-    const {
-      mainTabValid
-    } = this.state
     if (selectedTab === "main") {
       this.setState(prevState => ({
         selectedTab,
@@ -58,11 +55,9 @@ class OrderForm extends React.Component<IProps, IState> {
         }
       }))
     } else {
-      if (mainTabValid) {
-        this.setState(prevState => ({
-          selectedTab
-        }))
-      }
+      this.setState(prevState => ({
+        selectedTab: prevState.mainTabValid ? selectedTab : prevState.selectedTab
+      }))
     }
   }
 
@@ -81,7 +76,7 @@ class OrderForm extends React.Component<IProps, IState> {
   }
 
   mainFormIsValid = () => {
-    this.setState({mainTabValid: true})
+    this.setState({ mainTabValid: true })
     this.onTabChanged('address')
   }
 
